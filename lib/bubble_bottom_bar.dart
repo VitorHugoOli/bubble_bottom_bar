@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:badges/badges.dart';
 
 const double _kActiveFontSize = 14.0;
 const double _kBottomMargin = 8.0;
@@ -28,15 +29,15 @@ class BubbleBottomBar extends StatefulWidget {
       : assert(items != null),
         assert(items.length >= 2),
         assert(
-            items.every((BubbleBottomBarItem item) => item.title != null) ==
-                true,
-            'Every item must have a non-null title',),
+          items.every((BubbleBottomBarItem item) => item.title != null) == true,
+          'Every item must have a non-null title',
+        ),
         assert(0 <= currentIndex && currentIndex < items.length),
         assert(iconSize != null),
         super(key: key);
 
   final List<BubbleBottomBarItem> items;
-  final ValueChanged<int> onTap;
+  final onTap;
   int currentIndex;
   final double iconSize;
   final double opacity;
@@ -80,7 +81,7 @@ class _BottomNavigationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     int size;
     Widget label;
-    size = (flex * 1000.0).round();
+    size = selected ? (flex * 1600.0).round() : (flex * 1000.0).round();
     label = _Label(
       animation: animation,
       item: item,
@@ -108,6 +109,7 @@ class _BottomNavigationTile extends StatelessWidget {
               highlightColor: Colors.transparent,
               child: Container(
                 height: 48,
+                width: selected ? 1000 : 80,
                 decoration: BoxDecoration(
                     color: selected
                         ? item.backgroundColor.withOpacity(opacity)
@@ -120,7 +122,7 @@ class _BottomNavigationTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: selected
                       ? MainAxisAlignment.spaceEvenly
-                      : MainAxisAlignment.center,
+                      : MainAxisAlignment.end,
                   mainAxisSize: MainAxisSize.max,
                   children: <Widget>[
                     _TileIcon(
@@ -179,13 +181,19 @@ class _TileIcon extends StatelessWidget {
     return Align(
       alignment: Alignment.topCenter,
       heightFactor: 1.0,
-      child: Container(
-        child: IconTheme(
-          data: IconThemeData(
-            color: selected ? item.backgroundColor : iconColor,
-            size: iconSize,
+      child: Badge(
+        showBadge: item.showBadge,
+        badgeContent: item.badge,
+        badgeColor: item.badgeColor,
+        animationType: BadgeAnimationType.fade,
+        child: Container(
+          child: IconTheme(
+            data: IconThemeData(
+              color: selected ? item.backgroundColor : iconColor,
+              size: iconSize,
+            ),
+            child: selected ? item.activeIcon : item.icon,
           ),
-          child: selected ? item.activeIcon : item.icon,
         ),
       ),
     );
@@ -307,7 +315,6 @@ class _BottomNavigationBarState extends State<BubbleBottomBar>
         BubbleBottomBarItem _nextItem = widget.items[widget.currentIndex];
 
         widget.items[0] = _nextItem;
-        widget.items[widget.currentIndex] = _currentItem;
         _controllers[oldWidget.currentIndex].reverse();
         _controllers[widget.currentIndex].forward();
         widget.currentIndex = 0;
@@ -325,23 +332,25 @@ class _BottomNavigationBarState extends State<BubbleBottomBar>
     assert(localizations != null);
     final List<Widget> children = <Widget>[];
     for (int i = 0; i < widget.items.length; i += 1) {
-      children.add(
-        _BottomNavigationTile(
-          widget.items[i],
-          widget.opacity,
-          _animations[i],
-          widget.iconSize,
-          onTap: () {
-            if (widget.onTap != null) widget.onTap(i);
-          },
-          flex: _evaluateFlex(_animations[i]),
-          selected: i == widget.currentIndex,
-          indexLabel: localizations.tabLabel(
-              tabIndex: i + 1, tabCount: widget.items.length),
-          ink: widget.hasInk,
-          inkColor: widget.inkColor,
-        ),
-      );
+      if (i != 1) {
+        children.add(
+          _BottomNavigationTile(
+            widget.items[i],
+            widget.opacity,
+            _animations[i],
+            widget.iconSize,
+            onTap: () {
+              if (widget.onTap != null) widget.onTap(i);
+            },
+            flex: _evaluateFlex(_animations[i]),
+            selected: i == widget.currentIndex,
+            indexLabel: localizations.tabLabel(
+                tabIndex: i + 1, tabCount: widget.items.length),
+            ink: widget.hasInk,
+            inkColor: widget.inkColor,
+          ),
+        );
+      }
     }
     if (widget.fabLocation == BubbleBottomBarFabLocation.center) {
       children.insert(
@@ -427,14 +436,20 @@ class _BottomNavigationBarState extends State<BubbleBottomBar>
 class BubbleBottomBarItem {
   const BubbleBottomBarItem({
     @required this.icon,
-    this.title,
+    @required this.title,
     Widget activeIcon,
+    this.showBadge = false,
+    this.badgeColor = Colors.black,
+    this.badge,
     this.backgroundColor,
   })  : activeIcon = activeIcon ?? icon,
         assert(icon != null);
   final Widget icon;
   final Widget activeIcon;
   final Widget title;
+  final bool showBadge;
+  final Color badgeColor;
+  final Widget badge; // The content of badge. Usually Text or Icon.
   final Color backgroundColor;
 }
 
