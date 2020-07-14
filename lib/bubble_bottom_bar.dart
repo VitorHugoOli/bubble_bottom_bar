@@ -81,7 +81,7 @@ class _BottomNavigationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     int size;
     Widget label;
-    size = selected ? (flex * 1600.0).round() : (flex * 1000.0).round();
+    size = selected ? (flex * 1800.0).round() : (flex * 2000.0).round();
     label = _Label(
       animation: animation,
       item: item,
@@ -112,7 +112,7 @@ class _BottomNavigationTile extends StatelessWidget {
                 width: selected ? 1000 : 80,
                 decoration: BoxDecoration(
                     color: selected
-                        ? item.backgroundColor.withOpacity(opacity)
+                        ? item.backgroundColor
                         : Colors.transparent,
                     borderRadius: BorderRadius.horizontal(
                       right: Radius.circular(50),
@@ -446,7 +446,7 @@ class BubbleBottomBarItem {
         assert(icon != null);
   final Widget icon;
   final Widget activeIcon;
-  final Widget title;
+  final Text title;
   final bool showBadge;
   final Color badgeColor;
   final Widget badge; // The content of badge. Usually Text or Icon.
